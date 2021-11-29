@@ -5,6 +5,7 @@ import com.example.demo.feignClients.FeignGifClient;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
@@ -25,6 +26,9 @@ public class GifServiceTest {
     @Autowired
     private GifService gifService;
 
+    @Value("${gif.api.key}")
+    private String apiKey;
+
     @Test
     public void testGifUrlGetting() {
         String mockedUrl = "google.com";
@@ -34,7 +38,7 @@ public class GifServiceTest {
         mapWithData.put("data", mapWithUrl);
 
         ResponseEntity<Map> mockedEntity = new ResponseEntity<>(mapWithData, HttpStatus.OK);
-        Mockito.when(feignGifClient.getGifByWord("I7jUVqIfi3JqqCIb9kiOMpaVoeAnvtFI", "testTag"))
+        Mockito.when(feignGifClient.getRandomGifByTag(apiKey, "testTag"))
                 .thenReturn(mockedEntity);
         String gotUrl = gifService.getGifUrlByTag("testTag");
         Assertions.assertEquals(mockedUrl, gotUrl);

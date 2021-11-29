@@ -10,5 +10,5 @@ import java.util.Map;
 @FeignClient(value="feignGif", url="${gif.api.baseurl}")
 public interface FeignGifClient {
     @GetMapping
-    public ResponseEntity<Map> getGifByWord(@RequestParam("api_key") String api_key, @RequestParam("tag") String tag);
+    public ResponseEntity<Map> getRandomGifByTag(@RequestParam("api_key") String api_key, @RequestParam("tag") String tag);
 }

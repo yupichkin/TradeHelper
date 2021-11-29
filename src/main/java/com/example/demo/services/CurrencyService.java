@@ -3,8 +3,10 @@ package com.example.demo.services;
 import com.example.demo.feignClients.FeignCurrencyClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -19,6 +21,9 @@ public class CurrencyService {
 
     @Value("${openexchangerates.api.basecurrency}")
     private String baseCurrency;
+
+    @Value("${openexchangerates.api.response.currencyValueKey}")
+    private String keyForCurrencyValue;
 
     @Autowired
     private FeignCurrencyClient feignCurrencyClient;
@@ -39,22 +44,38 @@ public class CurrencyService {
     }
 
     public boolean isCurrencyAvailableOnApi(String currency) {
-        ResponseEntity<Map> availableCurrencies = feignCurrencyClient.getAvailableCurrencies();
-        return availableCurrencies.getBody().get(currency.toUpperCase(Locale.ROOT)) != null;
+        ResponseEntity<Map> availableCurrenciesAsResponse = feignCurrencyClient.getAvailableCurrencies();
+        Map availableCurrencies = availableCurrenciesAsResponse.getBody();
+        if(availableCurrencies != null) {
+            return availableCurrencies.get(currency.toUpperCase(Locale.ROOT)) != null;
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Currency service unavailable now"); //any other problem of currency api
+        }
     }
 
     private Double unboxResponseAndGetCurrency(ResponseEntity<Map> response, String currency) {
-        Map body = response.getBody();
-        Map rates = (Map) body.get("rates"); //TODO: rates into application properties
-        //hardcode segment begins
-        Object object = rates.get(currency);
-        String className = object.getClass().getName(); //because sometime (usd/usd gives 1 as Integer) we can get Integer,
-                                                        //and we can't simply cast it in to Double
-        if(className.equals("java.lang.Integer")) {
-            return (double) (Integer) rates.get(currency);
+        Object object = null;
+        try {
+            Map body = response.getBody();
+            Map rates = (Map) body.get(keyForCurrencyValue);
+            object = rates.get(currency);
+        }catch (ClassCastException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Currency service response problem"); //problem due response unboxing
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY,
+                    "Currency service unavailable now"); //any other problem of api
         }
-        return (double) rates.get(currency);
-
+        String className = object.getClass().getName(); //because there a case (usd/usd gives 1 as Integer) we can get Integer,
+        //and we can't simply cast it in to Double
+        if (className.equals(Integer.class.getName())) {
+            return (double) (Integer) object;
+        }
+        return (double) object;
     }
 
     private String getYesterdayDate() {

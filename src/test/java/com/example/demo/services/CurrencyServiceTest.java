@@ -1,7 +1,6 @@
 package com.example.demo.services;
 
 import com.example.demo.feignClients.FeignCurrencyClient;
-import com.example.demo.feignClients.FeignGifClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @SpringBootTest
 @ComponentScan("com.example.demo")
@@ -44,6 +41,25 @@ public class CurrencyServiceTest {
                 .thenReturn(mockedEntity);
         Double gotCurrency = currencyService.getCurrencyForToday(testCurrencyCodeLower);
         Assertions.assertEquals(mockedCurrency, gotCurrency);
+    }
+
+    @Test
+    public void testIntegerAndDoubleCast() {
+        Integer mockedCurrency = 1;
+        String testCurrencyCodeUpper = "RUB";
+        String testCurrencyCodeLower = "rub";
+
+        Map<String, Object> mapWithCurrency = new LinkedHashMap<>();
+        mapWithCurrency.put(testCurrencyCodeUpper, mockedCurrency);
+        Map<String, Map> mapWithRates = new LinkedHashMap<>();
+        mapWithRates.put("rates", mapWithCurrency);
+
+        ResponseEntity<Map> mockedEntity = new ResponseEntity<>(mapWithRates, HttpStatus.OK);
+        Mockito.when(feignCurrencyClient.getCurrencyInfoForToday("2e2d2948695846be9749b3da94aa6261", "USD", testCurrencyCodeUpper))
+                .thenReturn(mockedEntity);
+        Double gotCurrency = currencyService.getCurrencyForToday(testCurrencyCodeLower);
+
+        Assertions.assertEquals(mockedCurrency, gotCurrency.intValue());
     }
 
     @Test
@@ -80,9 +96,7 @@ public class CurrencyServiceTest {
         Assertions.assertFalse(isNonExistentCurrencyAvailable);
     }
 
-
-
-    private String getDate() {
+    private String getDate() { //copied from service
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");

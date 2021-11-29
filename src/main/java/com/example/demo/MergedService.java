@@ -4,7 +4,9 @@ import com.example.demo.services.CurrencyService;
 import com.example.demo.services.GifService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class MergedService {
@@ -24,9 +26,11 @@ public class MergedService {
     @Value("${gif.tags.equal}")
     private String equalTag;
 
-    String getRedirectUrlByCurrencyName(String currencyAsString) {
+    public String getRedirectUrlByCurrencyName(String currencyAsString) {
         if (!currencyService.isCurrencyAvailableOnApi(currencyAsString)) {
-           return "";
+           throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "The currency code is incorrect or this currency doesn't exist");
         }
         Double todayCurrency = currencyService.getCurrencyForToday(currencyAsString);
         Double yesterdayCurrency = currencyService.getCurrencyForYesterday(currencyAsString);

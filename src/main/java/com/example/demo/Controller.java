@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.File;
@@ -25,9 +26,7 @@ public class Controller {
 
     @GetMapping("/getSituation/{currencyCode}")
     public RedirectView getSituationAboutCurrency(@PathVariable String currencyCode) {
-
         String url = mergedService.getRedirectUrlByCurrencyName(currencyCode);
-        //ResponseEntity<Map> = new ResponseEntity<Map>()
         return new RedirectView(url);
     }
 
