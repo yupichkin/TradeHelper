@@ -11,8 +11,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Map;
-
 @SpringBootTest
 @ComponentScan("com.example.demo")
 public class MergedServiceTest {
