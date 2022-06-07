@@ -1,7 +1,5 @@
-package com.example.demo;
+package com.example.demo.services;
 
-import com.example.demo.services.CurrencyService;
-import com.example.demo.services.GifService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
